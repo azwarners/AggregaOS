@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aggregaos.invalid/schemas/v1/execution-request.schema.json",
+  "title": "Bounded execution request (v1)",
+  "type": "object",
+  "required": ["task_id", "loop_owner", "goal", "scope", "limits", "allowed_tools"],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "loop_owner": { "type": "string", "minLength": 1 },
+    "goal": { "type": "string", "minLength": 1 },
+    "scope": { "type": "object" },
+    "limits": { "type": "object", "minProperties": 1, "properties": { "max_steps": { "type": "integer", "minimum": 1 }, "timeout_seconds": { "type": "integer", "minimum": 1 } }, "additionalProperties": { "type": ["integer", "number", "string"] } },
+    "allowed_tools": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "denied_tools": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "identity_context": { "type": ["object", "null"] }
+  },
+  "additionalProperties": false
+}

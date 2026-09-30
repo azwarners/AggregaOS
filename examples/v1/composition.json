@@ -1,0 +1,95 @@
+{
+  "host": {
+    "host_id": "host:lab-01",
+    "name": "lab-01.example.net",
+    "platform": { "name": "Debian", "version": "13" },
+    "connectivity": "discovered",
+    "trust": "untrusted",
+    "resources": { "memory_bytes": 8589934592, "cpu_count": 4 },
+    "roles": ["media"],
+    "applications": [{ "id": "example.media", "state": "desired" }],
+    "services": [],
+    "configuration_revision": "git:4fa2c9e",
+    "integrations": ["beszel"]
+  },
+  "application": {
+    "id": "example.media",
+    "source": { "name": "Example Media", "upstream": "https://example.net/media" },
+    "install_methods": ["ansible-role"],
+    "entry_point": "roles/media/tasks/main.yml",
+    "dependencies": [],
+    "conflicts": [],
+    "services": [{ "name": "media", "ports": [8096], "data_paths": ["/srv/media"] }],
+    "configuration": [{ "name": "admin_password", "type": "string", "required": true, "secret_reference": true }],
+    "secret_references": ["secret://vault/media/admin-password"],
+    "capabilities": { "install": true, "update": true, "remove": false, "verify": true },
+    "integrations": ["ansible"],
+    "unsupported_operations": ["remove", "automatic-migration"]
+  },
+  "flows": [
+    {
+      "id": "direct-ansible-install",
+      "description": "Install an application directly with Ansible; Ladcemas is not required.",
+      "actor": "operator",
+      "executor": "ansible",
+      "request": { "playbook": "roles/media/tasks/main.yml", "inventory": "inventory/lab.ini", "limit": "lab-01", "extra_vars": { "media_admin_password_ref": "secret://vault/media/admin-password" } },
+      "result": { "status": "succeeded", "revision": "git:4fa2c9e" }
+    },
+    {
+      "id": "ladcemas-semaphore-change",
+      "description": "Ladcemas coordinates a change through the optional Semaphore API; Ansible executes desired state.",
+      "actor": "ladcemas",
+      "adapter": { "integration": { "type": "semaphore", "version": "2.x" }, "availability": "available", "supported_operations": ["launch-job", "get-job"], "unsupported_operations": ["edit-inventory"], "authentication": { "required": true, "methods": ["api-token"] }, "result": { "status": "succeeded", "external_resource_id": "job-184", "url": "https://semaphore.example.net/project/1/jobs/184" } },
+      "execution_owner": "ansible",
+      "result": { "status": "succeeded", "external_job_id": "job-184" }
+    },
+    {
+      "id": "beszel-observation",
+      "description": "Beszel reports observed host health; it does not set desired application state.",
+      "producer": "beszel",
+      "host_id": "host:lab-01",
+      "observations": { "availability": "available", "cpu_percent": 7.5, "memory_percent": 42 },
+      "authority": { "observes": ["health", "resources"], "does_not_own": ["desired-state", "application-installation"] }
+    },
+    {
+      "id": "optional-grafana-link",
+      "description": "Expose a dashboard link only when Grafana is configured; its absence does not block monitoring.",
+      "integration": "grafana",
+      "availability": "unavailable",
+      "dashboard": null,
+      "unsupported_operations": ["render-dashboard"]
+    },
+    {
+      "id": "plain-ysparr",
+      "description": "Use Ysparr transport without identity integration.",
+      "component": "ysparr",
+      "identity_context": null,
+      "transport": "local-library",
+      "capabilities": ["conversation", "provider-selection"]
+    },
+    {
+      "id": "apmatia-character-context",
+      "description": "When present, Apmatia supplies optional character continuity context to Ysparr.",
+      "component": "ysparr",
+      "identity_provider": "apmatia",
+      "context": { "subject_ref": "apmatia:character:7", "permissions": ["conversation:use-character"] },
+      "permission_boundary": "application-session; does-not-grant-host-administration"
+    },
+    {
+      "id": "bounded-redless-task",
+      "description": "Ladcemas submits one bounded task; Redless owns the execution loop.",
+      "coordinator": "ladcemas",
+      "loop_owner": "redless",
+      "task": { "task_id": "task-92", "loop_owner": "redless", "goal": "Summarize these three log files", "scope": { "files": ["/var/log/app/a.log", "/var/log/app/b.log", "/var/log/app/c.log"] }, "limits": { "max_steps": 8, "timeout_seconds": 120 }, "allowed_tools": ["read-file"], "denied_tools": ["shell", "write-file", "host-admin"] },
+      "result": { "status": "failed", "error": { "code": "TASK_LIMIT_REACHED", "message": "Task exceeded its step limit.", "retryable": false } }
+    },
+    {
+      "id": "standalone-third-party-app",
+      "description": "Install a third-party application directly without requiring AggregaOS, Ladcemas, or the rest of the stack.",
+      "application_id": "example.media",
+      "installer": "ansible",
+      "required_stack": [],
+      "result": { "status": "succeeded", "host_id": "host:lab-01" }
+    }
+  ]
+}

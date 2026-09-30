@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aggregaos.invalid/schemas/v1/host.schema.json",
+  "title": "AggregaOS host record (v1)",
+  "description": "A partial host inventory record. Discovery does not confer trust.",
+  "type": "object",
+  "required": ["host_id", "name", "connectivity"],
+  "properties": {
+    "host_id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "platform": { "type": "object", "properties": { "name": { "type": "string" }, "version": { "type": "string" } }, "additionalProperties": false },
+    "connectivity": { "enum": ["unknown", "discovered", "enrolled", "reachable", "unreachable"] },
+    "trust": { "enum": ["unknown", "untrusted", "trusted"] },
+    "resources": { "type": "object", "additionalProperties": { "type": ["integer", "number", "string"] } },
+    "roles": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "applications": { "type": "array", "items": { "type": "object", "required": ["id", "state"], "properties": { "id": { "type": "string" }, "state": { "enum": ["desired", "installed", "absent", "unknown"] }, "version": { "type": "string" } }, "additionalProperties": false } },
+    "services": { "type": "array", "items": { "$ref": "#/$defs/service" } },
+    "configuration_revision": { "type": "string" },
+    "integrations": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false,
+  "$defs": { "service": { "type": "object", "required": ["name", "state"], "properties": { "name": { "type": "string" }, "state": { "enum": ["running", "stopped", "unknown"] }, "endpoints": { "type": "array", "items": { "type": "string", "format": "uri" } } }, "additionalProperties": false } }
+}

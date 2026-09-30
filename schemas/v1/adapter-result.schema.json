@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aggregaos.invalid/schemas/v1/adapter-result.schema.json",
+  "title": "Management integration adapter and invocation result (v1)",
+  "type": "object",
+  "required": ["integration", "availability", "supported_operations", "authentication", "result"],
+  "properties": {
+    "integration": { "type": "object", "required": ["type", "version"], "properties": { "type": { "type": "string" }, "version": { "type": "string" } }, "additionalProperties": false },
+    "availability": { "enum": ["available", "unavailable", "degraded", "unknown"] },
+    "supported_operations": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "unsupported_operations": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "authentication": { "type": "object", "required": ["required", "methods"], "properties": { "required": { "type": "boolean" }, "methods": { "type": "array", "items": { "type": "string" } } }, "additionalProperties": false },
+    "result": { "$ref": "#/$defs/result" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "result": { "type": "object", "required": ["status"], "properties": { "status": { "enum": ["succeeded", "failed", "unavailable"] }, "external_resource_id": { "type": "string" }, "url": { "type": "string", "format": "uri" }, "error": { "$ref": "#/$defs/error" } }, "allOf": [ { "if": { "properties": { "status": { "enum": ["failed", "unavailable"] } }, "required": ["status"] }, "then": { "required": ["error"] } }, { "if": { "properties": { "status": { "const": "succeeded" } }, "required": ["status"] }, "then": { "not": { "required": ["error"] } } } ], "additionalProperties": false },
+    "error": { "type": "object", "required": ["code", "message", "retryable"], "properties": { "code": { "type": "string" }, "message": { "type": "string" }, "retryable": { "type": "boolean" }, "details": { "type": "object" } }, "additionalProperties": false }
+  }
+}
