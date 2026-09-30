@@ -81,7 +81,7 @@
       "coordinator": "ladcemas",
       "loop_owner": "redless",
       "task": { "task_id": "task-92", "loop_owner": "redless", "goal": "Summarize these three log files", "scope": { "files": ["/var/log/app/a.log", "/var/log/app/b.log", "/var/log/app/c.log"] }, "limits": { "max_steps": 8, "timeout_seconds": 120 }, "allowed_tools": ["read-file"], "denied_tools": ["shell", "write-file", "host-admin"] },
-      "result": { "status": "failed", "error": { "code": "TASK_LIMIT_REACHED", "message": "Task exceeded its step limit.", "retryable": false } }
+      "result": { "task_id": "task-92", "loop_owner": "redless", "status": "failed", "error": { "code": "TASK_LIMIT_REACHED", "message": "Task exceeded its step limit.", "retryable": false } }
     },
     {
       "id": "standalone-third-party-app",
