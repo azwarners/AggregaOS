@@ -1,0 +1,76 @@
+{
+  "id": "comfyui",
+  "display_name": "ComfyUI",
+  "description": "ComfyUI curated application entry.",
+  "ownership": "third-party",
+  "category": "ai-image-generation",
+  "source": {
+    "name": "Comfy-Org/ComfyUI",
+    "upstream": "https://github.com/Comfy-Org/ComfyUI"
+  },
+  "version": "0.38.0",
+  "status": "supported",
+  "install_methods": [
+    "native-python"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "gpu-configuration"
+  ],
+  "entry_point": "ansible/playbooks/comfyui.yml",
+  "deployments": [
+    {
+      "method": "native-python",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/comfyui.yml",
+      "reference": "v0.38.0",
+      "requirements": [
+        "system:git",
+        "system:python3",
+        "system:python3-venv",
+        "pytorch-cpu"
+      ]
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:git",
+    "system:python3",
+    "system:python3-venv"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "comfyui.service",
+      "ports": [
+        8188
+      ],
+      "data_paths": [
+        "/var/lib/aggregare/comfyui"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:8188"
+      ]
+    }
+  ],
+  "secret_references": [],
+  "integrations": [
+    "llama.cpp"
+  ]
+}

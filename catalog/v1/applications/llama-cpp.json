@@ -1,0 +1,83 @@
+{
+  "id": "llama-cpp",
+  "display_name": "llama.cpp",
+  "description": "llama.cpp curated application entry.",
+  "ownership": "third-party",
+  "category": "ai-runtime",
+  "source": {
+    "name": "ggml-org/llama.cpp",
+    "upstream": "https://github.com/ggml-org/llama.cpp"
+  },
+  "version": "0.5.0",
+  "status": "experimental",
+  "install_methods": [
+    "native-source"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "gpu-configuration"
+  ],
+  "entry_point": "ansible/playbooks/llama-cpp.yml",
+  "deployments": [
+    {
+      "method": "native-source",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/llama-cpp.yml",
+      "reference": "v0.5.0",
+      "requirements": [
+        "system:git",
+        "system:cmake",
+        "system:build-essential"
+      ]
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:git",
+    "system:cmake",
+    "system:build-essential"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "llama-cpp.service",
+      "ports": [
+        8080
+      ],
+      "data_paths": [
+        "/var/lib/aggregare/llama.cpp/models"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:8080/health",
+        "http://127.0.0.1:8080/v1"
+      ]
+    }
+  ],
+  "configuration": [
+    {
+      "name": "llama_cpp_model_path",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "secret_references": [],
+  "integrations": [
+    "openai-compatible-http"
+  ]
+}

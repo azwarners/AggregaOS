@@ -1,0 +1,23 @@
+[Unit]
+Description=Ysparr OpenAI-compatible relay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ysparr
+Group=ysparr
+WorkingDirectory=/opt/aggregare/ysparr
+EnvironmentFile=/etc/aggregare/ysparr.env
+ExecStart=/opt/aggregare/venvs/ysparr/bin/ysparr serve
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/ysparr
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

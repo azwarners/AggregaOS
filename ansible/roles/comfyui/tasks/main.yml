@@ -1,0 +1,158 @@
+---
+- name: Validate ComfyUI platform and state
+  ansible.builtin.assert:
+    that:
+      - comfyui_state in ['present', 'absent']
+      - ansible_facts.distribution == 'Ubuntu'
+      - ansible_facts.distribution_version is version('24.04', '>=')
+      - comfyui_port | int >= 1
+      - comfyui_port | int <= 65535
+
+- name: Remove ComfyUI application
+  when: comfyui_state == 'absent'
+  block:
+    - name: Stop and disable ComfyUI service
+      ansible.builtin.systemd_service:
+        name: comfyui.service
+        enabled: false
+        state: stopped
+      failed_when: false
+
+    - name: Remove ComfyUI systemd unit, configuration, and application
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/comfyui.service
+        - /etc/aggregare/comfyui-models.yaml
+        - /opt/aggregare/comfyui
+        - /opt/aggregare/venvs/comfyui
+        - /var/lib/aggregare/status/comfyui.json
+
+    - name: Reload systemd after removing ComfyUI
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+- name: Install and configure ComfyUI
+  when: comfyui_state == 'present'
+  block:
+    - name: Install ComfyUI system prerequisites
+      ansible.builtin.apt:
+        name: [git, python3, python3-venv, python3-pip]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create ComfyUI service account
+      ansible.builtin.user:
+        name: comfyui
+        system: true
+        home: /var/lib/aggregare/comfyui
+        create_home: true
+        shell: /usr/sbin/nologin
+
+    - name: Create ComfyUI directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: /opt/aggregare, owner: root, group: root, mode: '0755' }
+        - { path: /opt/aggregare/venvs, owner: root, group: root, mode: '0755' }
+        - { path: /var/lib/aggregare/comfyui, owner: comfyui, group: comfyui, mode: '0750' }
+        - { path: /var/lib/aggregare/comfyui/models, owner: comfyui, group: comfyui, mode: '0750' }
+        - { path: /var/lib/aggregare/comfyui/input, owner: comfyui, group: comfyui, mode: '0750' }
+        - { path: /var/lib/aggregare/comfyui/output, owner: comfyui, group: comfyui, mode: '0750' }
+        - { path: /var/lib/aggregare/comfyui/user, owner: comfyui, group: comfyui, mode: '0750' }
+        - { path: /var/lib/aggregare/status, owner: root, group: root, mode: '0755' }
+        - { path: /etc/aggregare, owner: root, group: root, mode: '0755' }
+
+    - name: Check out the pinned ComfyUI release
+      ansible.builtin.git:
+        repo: https://github.com/Comfy-Org/ComfyUI.git
+        dest: /opt/aggregare/comfyui
+        version: "{{ comfyui_version }}"
+        update: true
+        force: false
+      register: comfyui_source
+
+    - name: Install CPU PyTorch in the ComfyUI environment
+      ansible.builtin.pip:
+        name: [torch, torchvision, torchaudio]
+        virtualenv: /opt/aggregare/venvs/comfyui
+        virtualenv_command: python3 -m venv
+        extra_args: --index-url https://download.pytorch.org/whl/cpu
+      register: comfyui_torch
+
+    - name: Install ComfyUI Python requirements
+      ansible.builtin.pip:
+        requirements: /opt/aggregare/comfyui/requirements.txt
+        virtualenv: /opt/aggregare/venvs/comfyui
+      register: comfyui_requirements
+
+    - name: Configure ComfyUI persistent model directories
+      ansible.builtin.copy:
+        dest: /etc/aggregare/comfyui-models.yaml
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          aggregare:
+            base_path: /var/lib/aggregare/comfyui/models
+            checkpoints: checkpoints/
+            clip: clip/
+            clip_vision: clip_vision/
+            configs: configs/
+            controlnet: controlnet/
+            diffusion_models: diffusion_models/
+            embeddings: embeddings/
+            loras: loras/
+            upscale_models: upscale_models/
+            vae: vae/
+      register: comfyui_models_config
+
+    - name: Install ComfyUI systemd unit
+      ansible.builtin.template:
+        src: comfyui.service.j2
+        dest: /etc/systemd/system/comfyui.service
+        owner: root
+        group: root
+        mode: '0644'
+      register: comfyui_unit
+
+    - name: Reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Enable and start ComfyUI
+      ansible.builtin.systemd_service:
+        name: comfyui.service
+        enabled: true
+        state: "{{ 'restarted' if (comfyui_source.changed or comfyui_torch.changed or comfyui_requirements.changed or comfyui_models_config.changed or comfyui_unit.changed) else 'started' }}"
+
+    - name: Verify ComfyUI web endpoint
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ comfyui_port }}/"
+        status_code: 200
+      register: comfyui_health
+      retries: 24
+      delay: 5
+      until: comfyui_health.status == 200
+
+    - name: Write machine-readable ComfyUI status
+      ansible.builtin.copy:
+        dest: /var/lib/aggregare/status/comfyui.json
+        owner: root
+        group: root
+        mode: '0644'
+        content: >-
+          {{ {
+            'schema_version': 'v1',
+            'application_id': 'comfyui',
+            'state': 'running',
+            'version': comfyui_version,
+            'deployment': {'backend': 'ansible', 'method': 'native-python', 'service': 'comfyui.service'},
+            'verification': {'status': 'passed', 'endpoint': 'http://127.0.0.1:' ~ (comfyui_port | string) ~ '/'}
+          } | to_nice_json }}

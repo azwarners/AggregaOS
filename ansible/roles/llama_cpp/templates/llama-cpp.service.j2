@@ -1,0 +1,21 @@
+[Unit]
+Description=llama.cpp local inference server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=llama-cpp
+Group=llama-cpp
+ExecStart=/opt/aggregare/llama.cpp/build/bin/llama-server --model {{ llama_cpp_model_path }} --host {{ llama_cpp_host }} --port {{ llama_cpp_port }}
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/aggregare/llama.cpp
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

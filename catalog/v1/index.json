@@ -1,0 +1,74 @@
+{
+  "catalog_version": "v1",
+  "schema": "../../schemas/v1/application.schema.json",
+  "applications": [
+    {
+      "id": "ladcemas",
+      "path": "applications/ladcemas.json"
+    },
+    {
+      "id": "ysparr",
+      "path": "applications/ysparr.json"
+    },
+    {
+      "id": "sidecaravan",
+      "path": "applications/sidecaravan.json"
+    },
+    {
+      "id": "apmatia",
+      "path": "applications/apmatia.json"
+    },
+    {
+      "id": "openipe",
+      "path": "applications/openipe.json"
+    },
+    {
+      "id": "troubleshell",
+      "path": "applications/troubleshell.json"
+    },
+    {
+      "id": "redless",
+      "path": "applications/redless.json"
+    },
+    {
+      "id": "llama-cpp",
+      "path": "applications/llama-cpp.json"
+    },
+    {
+      "id": "comfyui",
+      "path": "applications/comfyui.json"
+    },
+    {
+      "id": "locallightchat",
+      "path": "applications/locallightchat.json"
+    },
+    {
+      "id": "sillytavern",
+      "path": "applications/sillytavern.json"
+    },
+    {
+      "id": "memos",
+      "path": "applications/memos.json"
+    },
+    {
+      "id": "vikunja",
+      "path": "applications/vikunja.json"
+    },
+    {
+      "id": "beaver",
+      "path": "applications/beaver.json"
+    },
+    {
+      "id": "semaphore-ui",
+      "path": "applications/semaphore-ui.json"
+    },
+    {
+      "id": "beszel",
+      "path": "applications/beszel.json"
+    },
+    {
+      "id": "grafana",
+      "path": "applications/grafana.json"
+    }
+  ]
+}

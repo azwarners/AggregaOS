@@ -1,0 +1,5 @@
+---
+comfyui_state: present
+comfyui_version: v0.38.0
+comfyui_host: 127.0.0.1
+comfyui_port: 8188

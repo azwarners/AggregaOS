@@ -1,0 +1,5 @@
+- name: Install or remove Ysparr
+  hosts: aggregare
+  become: true
+  roles:
+  - ysparr

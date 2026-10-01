@@ -1,0 +1,32 @@
+- name: Install or remove Semaphore UI
+  hosts: aggregare
+  become: true
+  vars:
+    application_id: semaphore-ui
+    application_version: 2.19.12
+    application_image: semaphoreui/semaphore:v2.19.12
+    application_host_port: 3001
+    application_container_port: 3000
+    application_data_path: /var/lib/aggregare/semaphore
+    application_container_data_path: /etc/semaphore
+    application_environment:
+      SEMAPHORE_DB_DIALECT: bolt
+      SEMAPHORE_ADMIN: admin
+      SEMAPHORE_ADMIN_NAME: Aggregare Admin
+      SEMAPHORE_ADMIN_EMAIL: admin@localhost
+    application_secret_environment:
+      SEMAPHORE_ADMIN_PASSWORD: '{{ semaphore_admin_password | default('''') }}'
+    application_health_path: /
+  tasks:
+  - name: Apply the shared OCI application role
+    ansible.builtin.import_role:
+      name: container_app
+  pre_tasks:
+  - name: Require vault-provided administrator secret for Semaphore UI
+    ansible.builtin.assert:
+      that:
+      - semaphore_admin_password is defined
+      - semaphore_admin_password | length > 0
+      fail_msg: Define semaphore_admin_password with Ansible Vault before installing
+        Semaphore UI.
+    no_log: true

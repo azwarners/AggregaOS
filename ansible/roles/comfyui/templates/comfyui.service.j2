@@ -1,0 +1,23 @@
+[Unit]
+Description=ComfyUI local image and video workflow service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=comfyui
+Group=comfyui
+Environment=HOME=/var/lib/aggregare/comfyui
+WorkingDirectory=/opt/aggregare/comfyui
+ExecStart=/opt/aggregare/venvs/comfyui/bin/python main.py --cpu --listen {{ comfyui_host }} --port {{ comfyui_port }} --base-directory /var/lib/aggregare/comfyui --input-directory /var/lib/aggregare/comfyui/input --output-directory /var/lib/aggregare/comfyui/output --user-directory /var/lib/aggregare/comfyui/user --extra-model-paths-config /etc/aggregare/comfyui-models.yaml
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/aggregare/comfyui
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

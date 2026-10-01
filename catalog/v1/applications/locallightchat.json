@@ -1,0 +1,73 @@
+{
+  "id": "locallightchat",
+  "display_name": "LocalLightChat",
+  "description": "LocalLightChat curated application entry.",
+  "ownership": "third-party",
+  "category": "ai-chat-client",
+  "source": {
+    "name": "srware-net/LocalLightChat",
+    "upstream": "https://github.com/srware-net/LocalLightChat"
+  },
+  "version": "0.70",
+  "status": "supported",
+  "install_methods": [
+    "oci-container"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": false,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "version-pinned-update"
+  ],
+  "entry_point": "ansible/playbooks/locallightchat.yml",
+  "deployments": [
+    {
+      "method": "oci-container",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/locallightchat.yml",
+      "requirements": [
+        "system:podman"
+      ],
+      "reference": "srwarenet/locallightchat:latest",
+      "image": "srwarenet/locallightchat:latest"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:podman"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "locallightchat.service",
+      "ports": [
+        8181
+      ],
+      "data_paths": [
+        "/var/lib/aggregare/locallightchat"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:8181"
+      ]
+    }
+  ],
+  "secret_references": [],
+  "integrations": [
+    "comfyui",
+    "openai-compatible-http"
+  ]
+}

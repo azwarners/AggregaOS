@@ -1,0 +1,155 @@
+---
+- name: Validate llama.cpp host and model configuration
+  ansible.builtin.assert:
+    that:
+      - llama_cpp_state in ['present', 'absent']
+      - ansible_facts.distribution == 'Ubuntu'
+      - ansible_facts.distribution_version is version('24.04', '>=')
+      - llama_cpp_port | int >= 1
+      - llama_cpp_port | int <= 65535
+      - llama_cpp_model_path is match('^/[a-zA-Z0-9_./-]+$')
+
+- name: Remove llama.cpp service and build
+  when: llama_cpp_state == 'absent'
+  block:
+    - name: Stop and disable llama.cpp service
+      ansible.builtin.systemd_service:
+        name: llama-cpp.service
+        enabled: false
+        state: stopped
+      failed_when: false
+
+    - name: Remove llama.cpp systemd unit
+      ansible.builtin.file:
+        path: /etc/systemd/system/llama-cpp.service
+        state: absent
+      notify: Reload systemd
+
+    - name: Remove llama.cpp source and build environment
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/aggregare/llama.cpp
+        - /var/lib/aggregare/status/llama-cpp.json
+
+- name: Install and build llama.cpp
+  when: llama_cpp_state == 'present'
+  block:
+    - name: Install llama.cpp build prerequisites
+      ansible.builtin.apt:
+        name: [git, cmake, build-essential]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create llama.cpp service account
+      ansible.builtin.user:
+        name: llama-cpp
+        system: true
+        home: /var/lib/aggregare/llama.cpp
+        create_home: false
+        shell: /usr/sbin/nologin
+
+    - name: Create model and status directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: /opt/aggregare, owner: root, group: root, mode: '0755' }
+        - { path: /var/lib/aggregare/llama.cpp, owner: llama-cpp, group: llama-cpp, mode: '0750' }
+        - { path: /var/lib/aggregare/llama.cpp/models, owner: llama-cpp, group: llama-cpp, mode: '0750' }
+        - { path: /var/lib/aggregare/status, owner: root, group: root, mode: '0755' }
+
+    - name: Check out the pinned llama.cpp release
+      ansible.builtin.git:
+        repo: https://github.com/ggml-org/llama.cpp.git
+        dest: /opt/aggregare/llama.cpp
+        version: "{{ llama_cpp_version }}"
+        update: true
+        force: false
+      register: llama_cpp_source
+
+    - name: Configure the CPU llama.cpp build
+      ansible.builtin.command:
+        argv: [cmake, -S, /opt/aggregare/llama.cpp, -B, /opt/aggregare/llama.cpp/build, -DLLAMA_BUILD_SERVER=ON, -DCMAKE_BUILD_TYPE=Release]
+      changed_when: false
+
+    - name: Check whether the llama-server binary exists
+      ansible.builtin.stat:
+        path: /opt/aggregare/llama.cpp/build/bin/llama-server
+      register: llama_cpp_binary
+
+    - name: Build llama-server when its source changes or it is missing
+      ansible.builtin.command:
+        argv: [cmake, --build, /opt/aggregare/llama.cpp/build, --config, Release, --target, llama-server, -j, '2']
+      register: llama_cpp_build
+      when: llama_cpp_source.changed or not llama_cpp_binary.stat.exists
+      changed_when: true
+      notify: Restart llama.cpp
+
+    - name: Install llama.cpp systemd unit
+      ansible.builtin.template:
+        src: llama-cpp.service.j2
+        dest: /etc/systemd/system/llama-cpp.service
+        owner: root
+        group: root
+        mode: '0644'
+      register: llama_cpp_unit
+
+    - name: Reload systemd and apply pending changes
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Check whether a model file is configured
+      ansible.builtin.stat:
+        path: "{{ llama_cpp_model_path }}"
+      register: llama_cpp_model
+
+    - name: Enable and start inference service when a model is present
+      ansible.builtin.systemd_service:
+        name: llama-cpp.service
+        enabled: true
+        state: "{{ 'restarted' if (llama_cpp_source.changed or llama_cpp_build.changed or llama_cpp_unit.changed) else 'started' }}"
+      when: llama_cpp_model.stat.isreg
+
+    - name: Keep the service stopped until a model is supplied
+      ansible.builtin.systemd_service:
+        name: llama-cpp.service
+        enabled: false
+        state: stopped
+      when: not llama_cpp_model.stat.isreg
+
+    - name: Verify the llama-server binary
+      ansible.builtin.command:
+        argv: [/opt/aggregare/llama.cpp/build/bin/llama-server, --version]
+      changed_when: false
+
+    - name: Verify inference endpoint when a model is present
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ llama_cpp_port }}/health"
+        status_code: 200
+      register: llama_cpp_health
+      retries: 12
+      delay: 5
+      until: llama_cpp_health.status == 200
+      when: llama_cpp_model.stat.isreg
+
+    - name: Write machine-readable llama.cpp status
+      ansible.builtin.copy:
+        dest: /var/lib/aggregare/status/llama-cpp.json
+        owner: root
+        group: root
+        mode: '0644'
+        content: >-
+          {{ {
+            'schema_version': 'v1',
+            'application_id': 'llama-cpp',
+            'state': 'running' if llama_cpp_model.stat.isreg else 'installed',
+            'version': llama_cpp_version,
+            'deployment': {'backend': 'ansible', 'method': 'native-source', 'service': 'llama-cpp.service'},
+            'verification': {'status': 'passed', 'endpoint': 'http://127.0.0.1:' ~ (llama_cpp_port | string) ~ '/health'} if llama_cpp_model.stat.isreg else {'status': 'passed', 'check': 'llama-server --version'}
+          } | to_nice_json }}

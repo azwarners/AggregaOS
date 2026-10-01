@@ -1,0 +1,74 @@
+{
+  "id": "redless",
+  "display_name": "Redless",
+  "description": "Redless curated application entry.",
+  "ownership": "aggregare",
+  "category": "bounded-execution",
+  "source": {
+    "name": "Aggregare / Redless",
+    "upstream": "https://github.com/azwarners/Redless"
+  },
+  "version": "source-16bb8dd",
+  "status": "experimental",
+  "install_methods": [
+    "native-python-cli"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "service-management"
+  ],
+  "entry_point": "ansible/playbooks/redless.yml",
+  "deployments": [
+    {
+      "method": "native-python-cli",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/redless.yml",
+      "reference": "16bb8dd2d68582a55394075dfb7fbf5bb2924385",
+      "requirements": [
+        "system:git",
+        "system:python3",
+        "system:python3-venv"
+      ]
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:git",
+    "system:python3",
+    "system:python3-venv"
+  ],
+  "conflicts": [],
+  "configuration": [
+    {
+      "name": "openai_base_url",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "openai_api_key",
+      "type": "string",
+      "required": false,
+      "secret_reference": true
+    }
+  ],
+  "secret_references": [],
+  "integrations": [
+    "llama.cpp"
+  ]
+}

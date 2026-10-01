@@ -1,0 +1,77 @@
+{
+  "id": "vikunja",
+  "display_name": "Vikunja",
+  "description": "Vikunja curated application entry.",
+  "ownership": "third-party",
+  "category": "productivity",
+  "source": {
+    "name": "go-vikunja/vikunja",
+    "upstream": "https://github.com/go-vikunja/vikunja"
+  },
+  "version": "2.6.0",
+  "status": "supported",
+  "install_methods": [
+    "oci-container"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "automatic-backup"
+  ],
+  "entry_point": "ansible/playbooks/vikunja.yml",
+  "deployments": [
+    {
+      "method": "oci-container",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/vikunja.yml",
+      "requirements": [
+        "system:podman"
+      ],
+      "reference": "vikunja/vikunja:2.6.0",
+      "image": "vikunja/vikunja:2.6.0"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:podman"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "vikunja.service",
+      "ports": [
+        3456
+      ],
+      "data_paths": [
+        "/var/lib/aggregare/vikunja"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:3456/api/v1/info"
+      ]
+    }
+  ],
+  "configuration": [
+    {
+      "name": "VIKUNJA_SERVICE_PUBLICURL",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "secret_references": [],
+  "integrations": []
+}

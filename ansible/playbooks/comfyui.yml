@@ -1,0 +1,5 @@
+- name: Install or remove ComfyUI
+  hosts: aggregare
+  become: true
+  roles:
+  - comfyui

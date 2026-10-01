@@ -1,0 +1,32 @@
+[Unit]
+Description=Aggregare managed {{ application_id }} container
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+ContainerName={{ application_id }}
+Image={{ application_image }}
+{% if application_user | length > 0 %}
+User={{ application_user }}
+{% endif %}
+PublishPort={{ application_bind_address }}:{{ application_host_port }}:{{ application_container_port }}
+{% if application_volumes | length > 0 %}
+{% for volume in application_volumes %}
+Volume={{ volume.host }}:{{ volume.container }}{{ ':' ~ volume.options if volume.options is defined else '' }}
+{% endfor %}
+{% else %}
+Volume={{ application_data_path }}:{{ application_container_data_path }}
+{% endif %}
+{% for key, value in application_environment | default({}) | dictsort %}
+Environment={{ key }}={{ value }}
+{% endfor %}
+{% if application_secret_environment | length > 0 %}
+EnvironmentFile=/etc/aggregare/{{ application_id }}.env
+{% endif %}
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target

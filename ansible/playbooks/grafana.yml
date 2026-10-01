@@ -1,0 +1,27 @@
+- name: Install or remove Grafana
+  hosts: aggregare
+  become: true
+  vars:
+    application_id: grafana
+    application_version: 13.2.3
+    application_image: grafana/grafana-oss:13.2.3
+    application_host_port: 3000
+    application_container_port: 3000
+    application_data_path: /var/lib/aggregare/grafana
+    application_container_data_path: /var/lib/grafana
+    application_secret_environment:
+      GF_SECURITY_ADMIN_PASSWORD: '{{ grafana_admin_password | default('''') }}'
+    application_health_path: /api/health
+  tasks:
+  - name: Apply the shared OCI application role
+    ansible.builtin.import_role:
+      name: container_app
+  pre_tasks:
+  - name: Require vault-provided administrator secret for Grafana
+    ansible.builtin.assert:
+      that:
+      - grafana_admin_password is defined
+      - grafana_admin_password | length > 0
+      fail_msg: Define grafana_admin_password with Ansible Vault before installing
+        Grafana.
+    no_log: true

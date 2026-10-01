@@ -1,0 +1,92 @@
+{
+  "id": "ysparr",
+  "display_name": "Ysparr",
+  "description": "Ysparr curated application entry.",
+  "ownership": "aggregare",
+  "category": "ai-relay",
+  "source": {
+    "name": "Aggregare / Ysparr",
+    "upstream": "https://github.com/azwarners/Ysparr"
+  },
+  "version": "0.1.0",
+  "status": "supported",
+  "install_methods": [
+    "native-python"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "model-download",
+    "gpu-configuration"
+  ],
+  "entry_point": "ansible/playbooks/ysparr.yml",
+  "deployments": [
+    {
+      "method": "native-python",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/ysparr.yml",
+      "requirements": [
+        "system:git",
+        "system:python3",
+        "system:python3-venv"
+      ],
+      "reference": "264bc9c10ea3efdc21059767b58f20c4b07897cb"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:git",
+    "system:python3",
+    "system:python3-venv"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "ysparr.service",
+      "ports": [
+        8000
+      ],
+      "data_paths": [
+        "/var/lib/ysparr"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:8000/health",
+        "http://127.0.0.1:8000/v1"
+      ]
+    }
+  ],
+  "configuration": [
+    {
+      "name": "ysparr_upstream_base_url",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "ysparr_upstream_api_key",
+      "type": "string",
+      "required": false,
+      "secret_reference": true
+    }
+  ],
+  "secret_references": [
+    "ansible-vault:ysparr_upstream_api_key"
+  ],
+  "integrations": [
+    "openai-compatible-http"
+  ]
+}

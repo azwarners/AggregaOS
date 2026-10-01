@@ -1,0 +1,71 @@
+{
+  "id": "sillytavern",
+  "display_name": "SillyTavern",
+  "description": "SillyTavern curated application entry.",
+  "ownership": "third-party",
+  "category": "ai-chat-client",
+  "source": {
+    "name": "SillyTavern/SillyTavern",
+    "upstream": "https://github.com/SillyTavern/SillyTavern"
+  },
+  "version": "1.19.0",
+  "status": "supported",
+  "install_methods": [
+    "oci-container"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [],
+  "entry_point": "ansible/playbooks/sillytavern.yml",
+  "deployments": [
+    {
+      "method": "oci-container",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/sillytavern.yml",
+      "requirements": [
+        "system:podman"
+      ],
+      "reference": "ghcr.io/sillytavern/sillytavern:1.19.0",
+      "image": "ghcr.io/sillytavern/sillytavern:1.19.0"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:podman"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "sillytavern.service",
+      "ports": [
+        8001
+      ],
+      "data_paths": [
+        "/var/lib/aggregare/sillytavern/config",
+        "/var/lib/aggregare/sillytavern/data"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:8001"
+      ]
+    }
+  ],
+  "secret_references": [],
+  "integrations": [
+    "openai-compatible-http"
+  ]
+}

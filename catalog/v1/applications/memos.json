@@ -1,0 +1,71 @@
+{
+  "id": "memos",
+  "display_name": "Memos",
+  "description": "Memos curated application entry.",
+  "ownership": "third-party",
+  "category": "productivity",
+  "source": {
+    "name": "usememos/memos",
+    "upstream": "https://github.com/usememos/memos"
+  },
+  "version": "0.31.0",
+  "status": "supported",
+  "install_methods": [
+    "oci-container"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "automatic-backup"
+  ],
+  "entry_point": "ansible/playbooks/memos.yml",
+  "deployments": [
+    {
+      "method": "oci-container",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/memos.yml",
+      "requirements": [
+        "system:podman>=4.9"
+      ],
+      "reference": "ghcr.io/usememos/memos:0.31.0",
+      "image": "ghcr.io/usememos/memos:0.31.0"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:podman>=4.9"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "memos.service",
+      "ports": [
+        5230
+      ],
+      "data_paths": [
+        "/var/lib/aggregare/memos"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:5230",
+        "http://127.0.0.1:5230/api/v1/ping"
+      ]
+    }
+  ],
+  "secret_references": [],
+  "integrations": []
+}

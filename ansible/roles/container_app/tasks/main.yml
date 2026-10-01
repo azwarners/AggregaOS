@@ -1,0 +1,120 @@
+---
+- name: Validate container application inputs and host
+  ansible.builtin.assert:
+    that:
+      - application_state in ['present', 'absent']
+      - application_id is match('^[a-z0-9][a-z0-9-]*$')
+      - ansible_facts.distribution == 'Ubuntu'
+      - ansible_facts.distribution_version is version('24.04', '>=')
+      - application_host_port | int >= 1
+      - application_host_port | int <= 65535
+      - application_container_port | int >= 1
+      - application_container_port | int <= 65535
+      - application_data_path is match('^/')
+      - application_image is match('^[^ ]+:[^ ]+$')
+    fail_msg: Container catalog roles currently require Ubuntu 24.04+, a pinned image tag, and valid absolute data paths and ports.
+
+- name: Remove container application service
+  when: application_state == 'absent'
+  block:
+    - name: Stop and disable the application service
+      ansible.builtin.systemd_service:
+        name: "{{ application_id }}.service"
+        enabled: false
+        state: stopped
+      failed_when: false
+
+    - name: Remove the Quadlet definition
+      ansible.builtin.file:
+        path: "/etc/containers/systemd/{{ application_id }}.container"
+        state: absent
+
+    - name: Reload systemd after removing the Quadlet definition
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Remove the application status record
+      ansible.builtin.file:
+        path: "/var/lib/aggregare/status/{{ application_id }}.json"
+        state: absent
+
+    - name: Remove application secret environment file
+      ansible.builtin.file:
+        path: "/etc/aggregare/{{ application_id }}.env"
+        state: absent
+
+- name: Install and configure container application
+  when: application_state == 'present'
+  block:
+    - name: Install Podman for this container deployment
+      ansible.builtin.apt:
+        name: podman
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create application data and status directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ application_data_owner if item in ((application_data_paths | default([])) + [application_data_path]) else 'root' }}"
+        group: "{{ application_data_group if item in ((application_data_paths | default([])) + [application_data_path]) else 'root' }}"
+        mode: "{{ '0750' if item in ((application_data_paths | default([])) + [application_data_path]) else '0755' }}"
+      loop: "{{ (application_data_paths | default([])) + [application_data_path, '/etc/containers/systemd', '/var/lib/aggregare/status', '/etc/aggregare'] }}"
+
+    - name: Install systemd Quadlet definition
+      ansible.builtin.template:
+        src: application.container.j2
+        dest: "/etc/containers/systemd/{{ application_id }}.container"
+        owner: root
+        group: root
+        mode: '0644'
+      register: application_quadlet
+      notify: Reload systemd
+
+    - name: Write application secret environment file
+      ansible.builtin.template:
+        src: application.env.j2
+        dest: "/etc/aggregare/{{ application_id }}.env"
+        owner: root
+        group: root
+        mode: '0600'
+      when: application_secret_environment | length > 0
+      register: application_secret_file
+      no_log: true
+      notify: Reload systemd
+
+    - name: Apply Quadlet definition
+      ansible.builtin.meta: flush_handlers
+
+    - name: Enable and start application service
+      ansible.builtin.systemd_service:
+        name: "{{ application_id }}.service"
+        enabled: true
+        state: "{{ 'restarted' if (application_quadlet.changed or (application_secret_file.changed | default(false))) else 'started' }}"
+
+    - name: Verify application health endpoint
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ application_host_port }}{{ application_health_path }}"
+        method: GET
+        status_code: 200
+      register: application_health
+      retries: 24
+      delay: 5
+      until: application_health.status == 200
+
+    - name: Write machine-readable application status
+      ansible.builtin.copy:
+        dest: "/var/lib/aggregare/status/{{ application_id }}.json"
+        owner: root
+        group: root
+        mode: '0644'
+        content: >-
+          {{ {
+            'schema_version': 'v1',
+            'application_id': application_id,
+            'state': 'running',
+            'version': application_version,
+            'deployment': {'backend': 'ansible', 'method': 'oci-container', 'service': application_id ~ '.service', 'image': application_image},
+            'verification': {'status': 'passed', 'endpoint': 'http://127.0.0.1:' ~ (application_host_port | string) ~ application_health_path}
+          } | to_nice_json }}

@@ -1,0 +1,13 @@
+- name: Install or remove OpenIPE
+  hosts: aggregare
+  become: true
+  vars:
+    python_app_id: openipe
+    python_app_version: 0.0.1
+    python_app_source: https://github.com/azwarners/OpenIPE.git
+    python_app_ref: da7842181cca04c05ebbc19cef9cf50759e709b7
+    python_app_module: openipe
+  tasks:
+  - name: Install OpenIPE from its pinned upstream source
+    ansible.builtin.import_role:
+      name: python_app

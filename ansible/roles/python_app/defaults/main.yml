@@ -1,0 +1,10 @@
+---
+python_app_state: present
+python_app_id: app
+python_app_version: unreleased
+python_app_source: ''
+python_app_ref: main
+python_app_module: ''
+python_app_system_packages: []
+python_app_system_site_packages: false
+python_app_python_command: "import {{ python_app_module }}"

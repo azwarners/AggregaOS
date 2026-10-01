@@ -1,0 +1,5 @@
+[aggregare]
+ubuntu-host ansible_host=192.0.2.10 ansible_user=ubuntu
+
+[desktop]
+ubuntu-desktop ansible_host=192.0.2.11 ansible_user=ubuntu

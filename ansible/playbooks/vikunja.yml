@@ -1,0 +1,19 @@
+- name: Install or remove Vikunja
+  hosts: aggregare
+  become: true
+  vars:
+    application_id: vikunja
+    application_version: 2.6.0
+    application_image: vikunja/vikunja:2.6.0
+    application_host_port: 3456
+    application_container_port: 3456
+    application_data_path: /var/lib/aggregare/vikunja
+    application_container_data_path: /db
+    application_environment:
+      VIKUNJA_DATABASE_PATH: /db/vikunja.db
+      VIKUNJA_SERVICE_PUBLICURL: http://127.0.0.1:3456
+    application_health_path: /api/v1/info
+  tasks:
+  - name: Apply the shared OCI application role
+    ansible.builtin.import_role:
+      name: container_app

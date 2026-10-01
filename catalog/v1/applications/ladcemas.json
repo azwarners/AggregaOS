@@ -1,0 +1,23 @@
+{
+  "id": "ladcemas",
+  "display_name": "Ladcemas",
+  "description": "Ladcemas curated application entry.",
+  "ownership": "aggregare",
+  "category": "control-plane",
+  "source": {
+    "name": "Aggregare / Ladcemas",
+    "upstream": "https://github.com/azwarners/Ladcemas"
+  },
+  "version": "unreleased",
+  "status": "blocked",
+  "install_methods": [],
+  "capabilities": {
+    "install": false,
+    "update": false,
+    "remove": false,
+    "verify": false
+  },
+  "unsupported_operations": [
+    "repository-empty"
+  ]
+}

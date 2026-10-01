@@ -1,0 +1,87 @@
+{
+  "id": "troubleshell",
+  "display_name": "TroubleShell",
+  "description": "TroubleShell curated application entry.",
+  "ownership": "aggregare",
+  "category": "desktop-assistant",
+  "source": {
+    "name": "Aggregare / TroubleShell",
+    "upstream": "https://github.com/azwarners/TroubleShell"
+  },
+  "version": "0.2",
+  "status": "supported",
+  "install_methods": [
+    "native-python-desktop"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "service-management"
+  ],
+  "entry_point": "ansible/playbooks/troubleshell.yml",
+  "deployments": [
+    {
+      "method": "native-python-desktop",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/troubleshell.yml",
+      "reference": "ec89fe90fece6a87be3412a122b5dddc86de4c4a",
+      "requirements": [
+        "system:git",
+        "system:python3",
+        "system:python3-venv",
+        "system:python3-gi",
+        "system:gir1.2-gtk-4.0",
+        "system:gir1.2-vte-3.91",
+        "system:libvte-2.91-gtk4-0"
+      ]
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "26.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:git",
+    "system:python3",
+    "system:python3-venv",
+    "system:python3-gi",
+    "system:gir1.2-gtk-4.0",
+    "system:gir1.2-vte-3.91",
+    "system:libvte-2.91-gtk4-0"
+  ],
+  "conflicts": [],
+  "configuration": [
+    {
+      "name": "endpoint_url",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "model",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "api_key",
+      "type": "string",
+      "required": false,
+      "secret_reference": true
+    }
+  ],
+  "secret_references": [],
+  "integrations": [
+    "ysparr"
+  ]
+}

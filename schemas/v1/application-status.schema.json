@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aggregaos.invalid/schemas/v1/application-status.schema.json",
+  "title": "Aggregare application verification status (v1)",
+  "type": "object",
+  "required": ["schema_version", "application_id", "state", "version", "deployment", "verification"],
+  "properties": {
+    "schema_version": { "const": "v1" },
+    "application_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "state": { "enum": ["installed", "running", "stopped"] },
+    "version": { "type": "string" },
+    "deployment": {
+      "type": "object",
+      "required": ["backend", "method"],
+      "properties": {
+        "backend": { "type": "string" },
+        "method": { "type": "string" },
+        "service": { "type": "string" },
+        "image": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["passed", "not_run"] },
+        "endpoint": { "type": "string", "format": "uri" },
+        "check": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "anyOf": [
+    { "properties": { "verification": { "required": ["endpoint"] } } },
+    { "properties": { "verification": { "required": ["check"] } } }
+  ],
+  "additionalProperties": false
+}

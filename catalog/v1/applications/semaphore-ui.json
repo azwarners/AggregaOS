@@ -1,0 +1,80 @@
+{
+  "id": "semaphore-ui",
+  "display_name": "Semaphore UI",
+  "description": "Semaphore UI curated application entry.",
+  "ownership": "third-party",
+  "category": "automation",
+  "source": {
+    "name": "semaphoreui/semaphore",
+    "upstream": "https://github.com/semaphoreui/semaphore"
+  },
+  "version": "2.19.12",
+  "status": "supported",
+  "install_methods": [
+    "oci-container"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [],
+  "entry_point": "ansible/playbooks/semaphore.yml",
+  "deployments": [
+    {
+      "method": "oci-container",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/semaphore.yml",
+      "requirements": [
+        "system:podman"
+      ],
+      "reference": "semaphoreui/semaphore:v2.19.12",
+      "image": "semaphoreui/semaphore:v2.19.12"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:podman"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "semaphore-ui.service",
+      "ports": [
+        3001
+      ],
+      "data_paths": [
+        "/var/lib/aggregare/semaphore"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:3001"
+      ]
+    }
+  ],
+  "configuration": [
+    {
+      "name": "SEMAPHORE_ADMIN_PASSWORD",
+      "type": "string",
+      "required": true,
+      "secret_reference": true
+    }
+  ],
+  "secret_references": [
+    "ansible-vault:semaphore_admin_password"
+  ],
+  "integrations": [
+    "ansible"
+  ]
+}

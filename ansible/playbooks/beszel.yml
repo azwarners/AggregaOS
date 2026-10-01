@@ -1,0 +1,16 @@
+- name: Install or remove Beszel Hub
+  hosts: aggregare
+  become: true
+  vars:
+    application_id: beszel
+    application_version: 0.20.0
+    application_image: henrygd/beszel:0.20.0
+    application_host_port: 8090
+    application_container_port: 8090
+    application_data_path: /var/lib/aggregare/beszel
+    application_container_data_path: /beszel_data
+    application_health_path: /
+  tasks:
+  - name: Apply the shared OCI application role
+    ansible.builtin.import_role:
+      name: container_app

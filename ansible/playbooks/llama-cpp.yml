@@ -1,0 +1,5 @@
+- name: Install or remove llama.cpp
+  hosts: aggregare
+  become: true
+  roles:
+  - llama_cpp

@@ -1,0 +1,73 @@
+{
+  "id": "beszel",
+  "display_name": "Beszel",
+  "description": "Beszel curated application entry.",
+  "ownership": "third-party",
+  "category": "monitoring",
+  "source": {
+    "name": "henrygd/beszel",
+    "upstream": "https://github.com/henrygd/beszel"
+  },
+  "version": "0.20.0",
+  "status": "supported",
+  "install_methods": [
+    "oci-container"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "host-agent-install",
+    "desired-state"
+  ],
+  "entry_point": "ansible/playbooks/beszel.yml",
+  "deployments": [
+    {
+      "method": "oci-container",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/beszel.yml",
+      "requirements": [
+        "system:podman"
+      ],
+      "reference": "henrygd/beszel:0.20.0",
+      "image": "henrygd/beszel:0.20.0"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:podman"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "beszel.service",
+      "ports": [
+        8090
+      ],
+      "data_paths": [
+        "/var/lib/aggregare/beszel"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:8090"
+      ]
+    }
+  ],
+  "secret_references": [],
+  "integrations": [
+    "beszel-agent"
+  ]
+}

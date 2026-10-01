@@ -1,0 +1,23 @@
+{
+  "id": "sidecaravan",
+  "display_name": "Sidecaravan",
+  "description": "Sidecaravan curated application entry.",
+  "ownership": "aggregare",
+  "category": "agent-capabilities",
+  "source": {
+    "name": "Aggregare / Sidecaravan",
+    "upstream": "https://github.com/azwarners/Sidecaravan"
+  },
+  "version": "unreleased",
+  "status": "blocked",
+  "install_methods": [],
+  "capabilities": {
+    "install": false,
+    "update": false,
+    "remove": false,
+    "verify": false
+  },
+  "unsupported_operations": [
+    "no-installable-source-or-package"
+  ]
+}

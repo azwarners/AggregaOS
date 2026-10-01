@@ -1,0 +1,25 @@
+- name: Install or remove SillyTavern
+  hosts: aggregare
+  become: true
+  vars:
+    application_id: sillytavern
+    application_version: 1.19.0
+    application_image: ghcr.io/sillytavern/sillytavern:1.19.0
+    application_host_port: 8001
+    application_container_port: 8000
+    application_data_path: /var/lib/aggregare/sillytavern/data
+    application_container_data_path: /home/node/app/data
+    application_data_paths:
+    - /var/lib/aggregare/sillytavern/config
+    application_volumes:
+    - host: /var/lib/aggregare/sillytavern/config
+      container: /home/node/app/config
+    - host: /var/lib/aggregare/sillytavern/data
+      container: /home/node/app/data
+    application_environment:
+      SILLYTAVERN_HEARTBEATINTERVAL: '30'
+    application_health_path: /
+  tasks:
+  - name: Apply the shared OCI application role
+    ansible.builtin.import_role:
+      name: container_app

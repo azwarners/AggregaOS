@@ -1,0 +1,63 @@
+{
+  "id": "openipe",
+  "display_name": "OpenIPE",
+  "description": "OpenIPE curated application entry. The current role installs and import-verifies the Python package; it does not claim an HTTP service.",
+  "ownership": "aggregare",
+  "category": "productivity",
+  "source": {
+    "name": "Aggregare / OpenIPE",
+    "upstream": "https://github.com/azwarners/OpenIPE"
+  },
+  "version": "0.0.1",
+  "status": "experimental",
+  "install_methods": [
+    "native-python-library"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "service-management"
+  ],
+  "entry_point": "ansible/playbooks/openipe.yml",
+  "deployments": [
+    {
+      "method": "native-python-library",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/openipe.yml",
+      "reference": "da7842181cca04c05ebbc19cef9cf50759e709b7",
+      "requirements": [
+        "system:git",
+        "system:python3",
+        "system:python3-venv"
+      ]
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:git",
+    "system:python3",
+    "system:python3-venv"
+  ],
+  "conflicts": [],
+  "secret_references": [],
+  "integrations": [
+    "memos",
+    "vikunja",
+    "beaver"
+  ]
+}

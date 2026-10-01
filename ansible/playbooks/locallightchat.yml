@@ -1,0 +1,16 @@
+- name: Install or remove LocalLightChat
+  hosts: aggregare
+  become: true
+  vars:
+    application_id: locallightchat
+    application_version: '0.70'
+    application_image: srwarenet/locallightchat:latest
+    application_host_port: 8181
+    application_container_port: 80
+    application_data_path: /var/lib/aggregare/locallightchat
+    application_container_data_path: /var/lib/locallightchat
+    application_health_path: /
+  tasks:
+  - name: Apply the shared OCI application role
+    ansible.builtin.import_role:
+      name: container_app

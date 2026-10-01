@@ -1,0 +1,90 @@
+---
+- name: Validate native Python application configuration
+  ansible.builtin.assert:
+    that:
+      - python_app_state in ['present', 'absent']
+      - python_app_id is match('^[a-z0-9][a-z0-9-]*$')
+      - python_app_source is match('^https://')
+      - python_app_module | length > 0
+      - ansible_facts.distribution == 'Ubuntu'
+      - ansible_facts.distribution_version is version('24.04', '>=')
+
+- name: Remove native Python application
+  when: python_app_state == 'absent'
+  block:
+    - name: Remove application source and environment
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/opt/aggregare/{{ python_app_id }}"
+        - "/opt/aggregare/venvs/{{ python_app_id }}"
+
+    - name: Remove application catalog status
+      ansible.builtin.file:
+        path: "/var/lib/aggregare/status/{{ python_app_id }}.json"
+        state: absent
+
+- name: Install and verify native Python application
+  when: python_app_state == 'present'
+  block:
+    - name: Install Python application prerequisites
+      ansible.builtin.apt:
+        name: "{{ ['git', 'python3', 'python3-venv', 'python3-pip'] + python_app_system_packages }}"
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create application source and status directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - /opt/aggregare
+        - /opt/aggregare/venvs
+        - /var/lib/aggregare/status
+
+    - name: Check out application source
+      ansible.builtin.git:
+        repo: "{{ python_app_source }}"
+        dest: "/opt/aggregare/{{ python_app_id }}"
+        version: "{{ python_app_ref }}"
+        update: true
+        force: false
+      register: python_app_source_checkout
+
+    - name: Install application in its isolated virtual environment
+      ansible.builtin.pip:
+        name: "/opt/aggregare/{{ python_app_id }}"
+        virtualenv: "/opt/aggregare/venvs/{{ python_app_id }}"
+        virtualenv_command: python3 -m venv
+        virtualenv_site_packages: "{{ python_app_system_site_packages | bool }}"
+        editable: true
+      register: python_app_install
+
+    - name: Verify the installed application import
+      ansible.builtin.command:
+        argv:
+          - "/opt/aggregare/venvs/{{ python_app_id }}/bin/python"
+          - -c
+          - "{{ python_app_python_command }}"
+      changed_when: false
+
+    - name: Write machine-readable application status
+      ansible.builtin.copy:
+        dest: "/var/lib/aggregare/status/{{ python_app_id }}.json"
+        owner: root
+        group: root
+        mode: '0644'
+        content: >-
+          {{ {
+            'schema_version': 'v1',
+            'application_id': python_app_id,
+            'state': 'installed',
+            'version': python_app_version,
+            'deployment': {'backend': 'ansible', 'method': 'native-python'},
+            'verification': {'status': 'passed', 'check': 'import ' ~ python_app_module}
+          } | to_nice_json }}

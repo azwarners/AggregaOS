@@ -1,0 +1,82 @@
+{
+  "id": "grafana",
+  "display_name": "Grafana",
+  "description": "Grafana curated application entry.",
+  "ownership": "third-party",
+  "category": "observability",
+  "source": {
+    "name": "grafana/grafana",
+    "upstream": "https://github.com/grafana/grafana"
+  },
+  "version": "13.2.3",
+  "status": "supported",
+  "install_methods": [
+    "oci-container"
+  ],
+  "capabilities": {
+    "install": true,
+    "update": true,
+    "remove": true,
+    "verify": true
+  },
+  "unsupported_operations": [
+    "desired-state-authority"
+  ],
+  "entry_point": "ansible/playbooks/grafana.yml",
+  "deployments": [
+    {
+      "method": "oci-container",
+      "backend": "ansible",
+      "entry_point": "ansible/playbooks/grafana.yml",
+      "requirements": [
+        "system:podman"
+      ],
+      "reference": "grafana/grafana-oss:13.2.3",
+      "image": "grafana/grafana-oss:13.2.3"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "ubuntu",
+      "versions": [
+        "24.04"
+      ],
+      "architectures": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  ],
+  "dependencies": [
+    "system:podman"
+  ],
+  "conflicts": [],
+  "services": [
+    {
+      "name": "grafana.service",
+      "ports": [
+        3000
+      ],
+      "data_paths": [
+        "/var/lib/aggregare/grafana"
+      ],
+      "endpoints": [
+        "http://127.0.0.1:3000/api/health"
+      ]
+    }
+  ],
+  "configuration": [
+    {
+      "name": "GF_SECURITY_ADMIN_PASSWORD",
+      "type": "string",
+      "required": true,
+      "secret_reference": true
+    }
+  ],
+  "secret_references": [
+    "ansible-vault:grafana_admin_password"
+  ],
+  "integrations": [
+    "beszel"
+  ]
+}
