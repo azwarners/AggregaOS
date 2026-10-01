@@ -8,9 +8,9 @@ Machine-readable shapes live in [`../../schemas/v1/`](../../schemas/v1/): host i
 
 | Component | Owns |
 | --- | --- |
-| AggregaOS | Application catalog, presets, and install composition |
+| Aggregare | Platform composition, application catalog, presets, and installation/configuration conventions |
 | Ladcemas | Control-plane orchestration and management-system adapters |
-| Ansible | Default desired-state and configuration execution |
+| Ansible | Initial/default desired-state and configuration execution for the Ubuntu reference implementation |
 | Semaphore UI | Optional automation UI, API, inventory, and job system |
 | Beszel | Optional lightweight host and resource monitoring |
 | Grafana | Optional visualization and observability |
@@ -21,13 +21,19 @@ Machine-readable shapes live in [`../../schemas/v1/`](../../schemas/v1/): host i
 | Execution engines (including Redless) | Their own execution loops |
 | Third-party applications | Their business logic and data |
 
+## Platform boundary
+
+Ubuntu is the initial reference host platform, not the definition of Aggregare. Shared contracts describe host/platform identity, capabilities, desired operations, and results without requiring every future host to be Ubuntu or every future deployment backend to be Ansible.
+
+Platform-specific implementation details belong behind explicit support boundaries. Additional host platforms or deployment mechanisms may be added later when there is a concrete need and a maintainable implementation. Cross-platform support is not required for the initial phases.
+
 ## Host identity and state
 
-A host record uses a stable `host_id`; `name` is a display or network name. Platform, resource summary, roles, installed applications, services, revision, and integration references are optional when unavailable. `connectivity` records reachability or enrollment, not trust. Discovery or enrollment alone never authorizes an operation.
+A host record uses a stable `host_id`; `name` is a display or network name. Platform/OS/version, resource summary, roles, installed applications, services, revision, and integration references are optional when unavailable. `connectivity` records reachability or enrollment, not trust. Discovery or enrollment alone never authorizes an operation.
 
 ## Application catalog
 
-An application entry has a stable `id`, upstream `source`, one or more supported `install_methods`, and explicitly declared capabilities. `dependencies`, `conflicts`, `services`, `configuration`, and integration references are descriptive metadata used for composition; they do not transfer ownership of application data or behavior to AggregaOS. Secrets are named by reference only, never embedded as values. Unsupported operations are listed explicitly.
+An application entry has a stable `id`, upstream `source`, one or more supported `install_methods`, and explicitly declared capabilities. Platform support and install/deployment methods must be explicit rather than assumed. `dependencies`, `conflicts`, `services`, `configuration`, and integration references are descriptive metadata used for composition; they do not transfer ownership of application data or behavior to Aggregare. Secrets are named by reference only, never embedded as values. Unsupported operations are listed explicitly.
 
 Capabilities are operation names (`install`, `update`, `remove`, `verify`) with boolean support values. A consumer must treat a missing or false capability as unsupported. Integrations and adapters may add their own namespaced operations.
 
@@ -43,8 +49,8 @@ Identity context is optional and may be absent. Providers and runtimes advertise
 
 ## Reference flows
 
-The companion JSON examples demonstrate all eight phase 1 paths: direct Ansible installation; Ladcemas coordinating a Semaphore-backed Ansible change; Beszel observation without desired-state authority; an optional Grafana dashboard; plain Ysparr without Apmatia; an Apmatia-managed character context; a bounded Redless task with Redless owning its loop; and installing a third-party application without the AggregaOS stack. These examples are illustrative payloads, not requirements that every deployment install every integration.
+The companion JSON examples demonstrate all eight phase 1 paths: direct Ansible installation; Ladcemas coordinating a Semaphore-backed Ansible change; Beszel observation without desired-state authority; an optional Grafana dashboard; plain Ysparr without Apmatia; an Apmatia-managed character context; a bounded Redless task with Redless owning its loop; and installing a third-party application without the full Aggregare platform. These examples are illustrative payloads, not requirements that every deployment install every integration.
 
 ## Evolution rule
 
-Add fields when a real component or integration needs them. Keep component boundaries public and independently usable; a missing optional integration must not prevent direct use of another component.
+Add fields when a real component or integration needs them. Keep component boundaries public and independently usable; a missing optional integration must not prevent direct use of another component. Avoid embedding assumptions about Ubuntu, Ansible, containers, Kubernetes, or any other implementation mechanism into shared application contracts unless the capability itself requires it.
